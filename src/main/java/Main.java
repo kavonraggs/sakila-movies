@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Scanner;
 
 public class Main {
@@ -19,26 +20,27 @@ public class Main {
             dataSource.setUsername("root");
             dataSource.setPassword("yearup");
 
-            try (Connection connection = dataSource.getConnection();
-                 PreparedStatement preparedStatement = connection.prepareStatement("select last_name, first_name from actor where last_name = ?")
-            ) {
-                preparedStatement.setString(1, choice);
-                try (ResultSet lastNameSearch = preparedStatement.executeQuery()
-                ) {
-                    if (lastNameSearch.next()) {
-                        System.out.println("Matches:");
-                        do {
-                            String firstName = lastNameSearch.getString("first_name");
-                            String lastName = lastNameSearch.getString("last_name");
-                            System.out.printf("%s %s\n", firstName, lastName);
-                        }
-                        while (lastNameSearch.next());
-                    } else {
-                        System.out.println("No matches found");
-                    }
-                }
+            DataManager dataManager = new DataManager(dataSource);
+            List<Actor> actors = dataManager.searchActorByLastName(choice);
+
+            for (Actor actor: actors){
+                System.out.println(actor);
             }
-        } catch (SQLException e) {
+
+            if (actors.isEmpty()){
+                System.out.println("No matches found!");
+                return;
+            }
+
+            System.out.println("Enter Actor ID: ");
+            int input = scanner.nextInt();
+            scanner.nextLine();
+            List<Film> films = dataManager.getFilmByActorId(input);
+
+            for (Film film: films){
+                System.out.println(film);
+            }
+        } catch (SQLException e){
             throw new RuntimeException(e);
         }
     }

@@ -43,4 +43,35 @@ public class DataManager {
         }
         return actorList;
     }
+
+    public ArrayList<Film> getFilmByActorId(int actorID){
+      ArrayList<Film> filmsList = new ArrayList<>();
+
+      String sql = "select f.film_id, f.title, f.description, f.release_year, f.length FROM film f Join film_actor fa ON f.film_id = fa.film_id WHERE fa.actor_id = ?";
+
+      try (Connection connection = dataSource.getConnection()){
+           try (PreparedStatement statement = connection.prepareStatement(sql)) {
+
+               statement.setInt(1, actorID);
+
+               try(ResultSet results = statement.executeQuery()){
+                   if (results.next()){
+                       do {
+                           int filmId = results.getInt("film_id");
+                           String title = results.getString("title");
+                           String description = results.getString("description");
+                           int releaseYear = results.getInt("release_year");
+                           int length = results.getInt("length");
+                            Film film = new Film(filmId, title, description, releaseYear, length);
+                           filmsList.add(film);
+                       } while (results.next());
+                   }
+               }
+           }
+
+      } catch (SQLException e){
+          throw new RuntimeException(e);
+      }
+        return filmsList;
+    }
 }
